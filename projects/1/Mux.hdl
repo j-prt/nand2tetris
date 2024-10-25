@@ -2,7 +2,7 @@
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
 // File name: projects/1/Mux.hdl
-/** 
+/**
  * Multiplexor:
  * if (sel = 0) out = a, else out = b
  */
@@ -11,5 +11,35 @@ CHIP Mux {
     OUT out;
 
     PARTS:
-    //// Replace this comment with your code.
+    Xor(a=a, b=sel, out=xorAC);
+    Xor(a=b, b=sel, out=xorBC);
+    Not(in=xorBC, out=notXorBC);
+    And(a=a, b=notXorBC, out=aNotXorBC);
+    And(a=b, b=xorAC, out=bXorAC);
+    Or(a=aNotXorBC, b=bXorAC, out=out);
 }
+
+/*
+a b c out
+0 0 0 0
+0 0 1 0
+1 0 1 0
+1 0 0 1 a and notB and notC
+0 1 1 1 notA and b and c
+0 1 0 0
+1 1 1 1 a and b and c
+1 1 0 1 a and b and notC
+
+(a and notB and notC) || (notA and b and c) || (a and b and c) || (a and b and notC)
+(a and not(b || c)) || (notA and b and c) || (a and b and c) || (a and b and notC)
+
+(a and not(b || c)) || (a and b and c)
+a & (not(b || c) || b and c)
+a & not(xor(b,c))
+
+(notA and b and c) || (a and b and notC)
+b & ((notA and c) || (a and notC))
+b & xor(a,c)
+
+(a & not(xor(b,c))) || (b & xor(a,c))
+*/
