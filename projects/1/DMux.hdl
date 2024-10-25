@@ -12,5 +12,26 @@ CHIP DMux {
     OUT a, b;
 
     PARTS:
-    //// Replace this comment with your code.
+    Not(in=sel, out=notSel);
+    And(a=in, b=sel, out=b);
+    And(a=in, b=notSel, out=a);
 }
+
+/*
+in, sel, a, b
+two outputs = two chips with an out
+i s a
+0 0 0
+0 1 0
+1 0 1 in & not(sel)
+1 1 0
+
+
+i s b
+0 0 0
+0 1 0
+1 0 0
+1 1 1 in & (sel)
+
+
+*/
