@@ -12,7 +12,19 @@
 CHIP PC {
     IN in[16],inc, load, reset;
     OUT out[16];
-    
+
     PARTS:
-    //// Replace this comment with your code.
+    // basically, use muxes to do the checks in reverse order
+    // inc
+    Inc16(in=prevOut, out=incOut);
+    Mux16(a=prevOut, b=incOut, sel=inc, out=muxOut);
+
+    // load
+    Mux16(a=muxOut, b=in, sel=load, out=muxOut1);
+
+    // reset
+    Mux16(a=muxOut1, b=false, sel=reset, out=muxOut2);
+
+    // output
+    Register(in=muxOut2, load=true, out=prevOut, out=out);
 }
