@@ -58,9 +58,21 @@ CHIP ALU {
     // f on?
     Add16(a=x2, b=y2, out=xPlusY);
     And16(a=x2, b=y2, out=xAndY);
-    Mux16(a=xAndY, b=xPlusY, sel=f, out=result);
+    Mux16(a=xAndY, b=xPlusY, sel=f, out=tempResult);
 
     // negate output
-    Not16(in=result, out=notResult);
-    Mux16(a=result, b=notResult, sel=no, out=out);
+    Not16(in=tempResult, out=notResult);
+    Mux16(a=tempResult, b=notResult, sel=no, out[0..7]=resLSB, out[8..14]=resMid, out[15]=resMSB);
+
+    // zero result
+    Or8Way(in=resLSB, out=or1);
+    Or8Way(in[0..6]=resMid, in[7]=resMSB, out=or2);
+    Or(a=or1, b=or2, out=notZR);
+    Not(in=notZR, out=zr);
+
+    // negative result
+    And(a=resMSB, b=true, out=ng);
+
+    // output
+    And16(a=true, b[0..7]=resLSB, b[8..14]=resMid, b[15]=resMSB, out=out);
 }
