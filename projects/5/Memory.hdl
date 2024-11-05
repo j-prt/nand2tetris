@@ -4,19 +4,19 @@
 // File name: projects/5/Memory.hdl
 /**
  * The complete address space of the Hack computer's memory,
- * including RAM and memory-mapped I/O. 
+ * including RAM and memory-mapped I/O.
  * The chip facilitates read and write operations, as follows:
  *     Read:  out(t) = Memory[address(t)](t)
  *     Write: if load(t-1) then Memory[address(t-1)](t) = in(t-1)
- * In words: the chip always outputs the value stored at the memory 
- * location specified by address. If load=1, the in value is loaded 
- * into the memory location specified by address. This value becomes 
+ * In words: the chip always outputs the value stored at the memory
+ * location specified by address. If load=1, the in value is loaded
+ * into the memory location specified by address. This value becomes
  * available through the out output from the next time step onward.
  * Address space rules:
- * Only the upper 16K+8K+1 words of the Memory chip are used. 
- * Access to address>0x6000 is invalid. Access to any address in 
- * the range 0x4000-0x5FFF results in accessing the screen memory 
- * map. Access to address 0x6000 results in accessing the keyboard 
+ * Only the upper 16K+8K+1 words of the Memory chip are used.
+ * Access to address>0x6000 is invalid. Access to any address in
+ * the range 0x4000-0x5FFF results in accessing the screen memory
+ * map. Access to address 0x6000 results in accessing the keyboard
  * memory map. The behavior in these addresses is described in the Screen
  * and Keyboard chip specifications given in the lectures and the book.
  */
@@ -25,5 +25,23 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-	//// Replace this comment with your code.
+    // main memory
+    DMux(in=load, sel=address[14], a=l0, b=l1);
+    RAM16K(in=in, load=l0, address=address[0..13], out=out0);
+
+    // screen memory
+    Not(in=address[13], out=notAddr13);
+    And(a=l1, b=notAddr13, out=isScreen);
+    Screen(in=in, load=isScreen, address=address[0..12], out=out1);
+
+    // keyboard
+    Keyboard(out=out2);
+
+    // 00: RAM16K, 01: RAM16K, 10: Screen, 11: KBD
+    Mux4Way16(a=out0, b=out0, c=out1, d=out2, sel=address[13..14], out=out);
 }
+
+// 15bit bus for address = 32k addresses
+// addresses 0 - 16383 are read/write memory
+// addresses 16384 - 24575 are read/write screen
+// address 24576 is output only for KBD
