@@ -27,10 +27,80 @@ CHIP CPU {
                          // the current program (reset==0).
 
     OUT outM[16],        // M value output
-        writeM,          // Write to M? 
+        writeM,          // Write to M?
         addressM[15],    // Address in data memory (of M)
         pc[15];          // address of next instruction
 
     PARTS:
-	//// Replace this comment with your code.
+    // A-instruction vs ALU output
+    Not(in=instruction[15], out=aLoadA);
+    Mux16(a=instruction, b=aluOut, sel=aLoadA, out=aRegIn);
+
+    // Load A register?
+    And(a=instruction[15], b=instruction[5], out=cLoadA); // C instruction and Load A register
+    Or(a=aLoadA, b=cLoadA, out=loadA);
+    Register(in=aRegIn, load=loadA, out=aRegOut, out[0..14]=addressM);
+
+    // Load D register?
+    Register(in=aluOut, load=instruction[4], out=dRegOut);
+
+    // Load ALU from memory, or A register?
+    Mux16(a=aRegOut, b=inM, sel=instruction[12], out=aluIn);
+
+    // Load alu with D and A/M, + control bits
+    // D = x, A/M = y
+    ALU(x=dRegOut, y=aluIn,
+        zx=instruction[11], nx=instruction[10],
+        zy=instruction[9], ny=instruction[8],
+        f=instruction[7], no=instruction[6],
+        out=aluOut, out=outM, zr=zr, ng=ng);
+
+    // Write to M?
+    And(a=instruction[3], b=true, out=writeM);
+
+    // Jump - instruction[0..2]
+    // aluOut - zr, ng
+    Or(a=zr, b=ng, out=negOrZero);
+    Not(in=negOrZero, out=aluPos);
+
+    // Or together every jumping situation
+    // JGT
+    And(a=instruction[0], b=aluPos, out=jgt);
+
+    // JEQ
+    And(a=instruction[1], b=zr, out=jeq);
+
+    // JGE
+    And(a=instruction[0], b=instruction[1], out=jge0);
+    Or(a=zr, b=aluPos, out=jge1);
+    And(a=jge0, b=jge1, out=jge);
+
+    // JLT
+    And(a=instruction[2], b=ng, out=jlt);
+
+    // JNE
+    And(a=instruction[0], b=instruction[2], out=jne0);
+    Not(in=zr, out=jne1);
+    And(a=jne0, b=jne1, out=jne);
+
+    // JLE
+    And(a=instruction[1], b=instruction[2], out=jle0);
+    Or(a=aluPos, b=zr, out=jle1);
+    And(a=jle0, b=jle1, out=jle);
+
+    // JMP
+    And(a=instruction[0], b=instruction[1], out=jmp0);
+    And(a=jmp0, b=instruction[2], out=jmp);
+
+    Or8Way(in[0]=jgt, in[1]=jeq, in[2]=jge, in[3]=jlt, in[4]=jne,
+           in[5]=jle, in[6]=jmp, in[7]=false, out=loadJmp);
+
+    // inc?
+    Or(a=reset, b=loadJmp, out=resetOrJmp);
+    Not(in=resetOrJmp, out=inc);
+
+    // Manage the program counter
+    // in from A register, inc is Not(jmp)
+    PC(in=aRegOut, inc=inc, load=loadJmp, reset=reset, out[0..14]=pc);
+
 }
