@@ -39,10 +39,11 @@ CHIP CPU {
     // Load A register?
     And(a=instruction[15], b=instruction[5], out=cLoadA); // C instruction and Load A register
     Or(a=aLoadA, b=cLoadA, out=loadA);
-    Register(in=aRegIn, load=loadA, out=aRegOut, out[0..14]=addressM);
+    ARegister(in=aRegIn, load=loadA, out=aRegOut, out[0..14]=addressM);
 
     // Load D register?
-    Register(in=aluOut, load=instruction[4], out=dRegOut);
+    And(a=instruction[15], b=instruction[4], out=loadD);
+    DRegister(in=aluOut, load=loadD, out=dRegOut);
 
     // Load ALU from memory, or A register?
     Mux16(a=aRegOut, b=inM, sel=instruction[12], out=aluIn);
