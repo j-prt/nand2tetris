@@ -14,7 +14,7 @@ def get_path():
         return file_path
 
 
-def read_file(path):
+def read_file(path: str):
     """Reads file contents into memory, returning a list of lines"""
     try:
         with open(path, 'r') as f:
@@ -25,7 +25,7 @@ def read_file(path):
         exit(1)
 
 
-def decomment(source):
+def decomment(source: list[str]):
     """Trims whitespace, removes comments"""
     output = []
     for line in source:
@@ -39,12 +39,12 @@ def decomment(source):
 
 
 # For parsing A-instruction addresses
-def int_to_bin(addr):
+def int_to_bin(addr: int):
     """Converts an integer to its binary format, padded to 15 digits."""
     return f'{addr:b}'.rjust(15, '0')
 
 
-def build_a(addr):
+def build_a(addr: int):
     """Completes A-instructions when given an int address"""
     addr = int_to_bin(addr)
     return '0' + addr
@@ -52,4 +52,17 @@ def build_a(addr):
 
 source = read_file(get_path())
 source = decomment(source)
+print(source)
+
+
+def parse_line(line: str):
+    # A-instruction
+    if line.startswith('@'):
+        return build_a(int(line[1:]))
+    return line
+
+
+source = read_file(get_path())
+source = decomment(source)
+source = [parse_line(line) for line in source]
 print(source)
