@@ -50,18 +50,54 @@ def build_a(addr: int):
     return '0' + addr
 
 
+# For building C-instructions
+def build_dest(dest):
+    pass
+
+
+def build_comp(comp):
+    pass
+
+
+def build_jump(jump):
+    pass
+
+
+# Testing
 source = read_file(get_path())
 source = decomment(source)
 print(source)
 
 
 def parse_line(line: str):
+    """Parse individual lines. Assumes complete symbol table."""
     # A-instruction
     if line.startswith('@'):
-        return build_a(int(line[1:]))
-    return line
+        if line[1:].isnumeric():
+            return build_a(int(line[1:]))
+        else:
+            # TODO: get value from symbol table
+            return line
+
+    # C-instruction
+    # These 4 variables determine assignment, CPU command, and jump instructions
+    cmd = lhs = rhs = jmp = None
+    if ';' in line:
+        cmd, jmp = line.split(';')
+    if '=' in line:
+        lhs, rhs = line.split('=')
+        cmd = None
+    if rhs:
+        rhs = rhs.split(';')[0]
+
+    dest = build_dest(lhs)
+    comp = build_comp(cmd or rhs)
+    jump = build_jump(jmp)
+
+    return cmd, lhs, rhs, jmp
 
 
+# Testing
 source = read_file(get_path())
 source = decomment(source)
 source = [parse_line(line) for line in source]
