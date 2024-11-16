@@ -15,7 +15,7 @@ def get_path():
 
 
 def read_file(path):
-    """Reads file contents into memory, returning a list of rows"""
+    """Reads file contents into memory, returning a list of lines"""
     try:
         with open(path, 'r') as f:
             source = f.readlines()
@@ -23,6 +23,19 @@ def read_file(path):
     except FileNotFoundError:
         print('Error: file does not exist')
         exit(1)
+
+
+def decomment(source):
+    """Trims whitespace, removes comments"""
+    output = []
+    for line in source:
+        line = line.strip()
+        if line:
+            line = line.split('//')[0]
+            if line:
+                output.append(line)
+
+    return output
 
 
 # For parsing A-instruction addresses
@@ -37,4 +50,6 @@ def build_a(addr):
     return '0' + addr
 
 
-read_file(get_path())
+source = read_file(get_path())
+source = decomment(source)
+print(source)
