@@ -14,6 +14,17 @@ def get_path():
         return file_path
 
 
+def read_file(path):
+    """Reads file contents into memory, returning a list of rows"""
+    try:
+        with open(path, 'r') as f:
+            source = f.readlines()
+            return source
+    except FileNotFoundError:
+        print('Error: file does not exist')
+        exit(1)
+
+
 # For parsing A-instruction addresses
 def int_to_bin(addr):
     """Converts an integer to its binary format, padded to 15 digits."""
@@ -24,3 +35,6 @@ def build_a(addr):
     """Completes A-instructions when given an int address"""
     addr = int_to_bin(addr)
     return '0' + addr
+
+
+read_file(get_path())
