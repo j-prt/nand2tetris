@@ -2,6 +2,8 @@
 
 import sys
 
+MAX_REG = 15
+
 JUMP_TABLE = {
     'JGT': '001',
     'JEQ': '010',
@@ -31,6 +33,16 @@ COMP_TABLE = {
     'A-D': '000111',
     'D&A': '000000',
     'D|A': '010101',
+}
+
+symbol_table = {
+    'SCREEN': 16384,
+    'KDB': 24576,
+    'SP': 0,
+    'LCL': 1,
+    'ARG': 2,
+    'THIS': 3,
+    'THAT': 4,
 }
 
 
@@ -67,6 +79,15 @@ def decomment(source: list[str]):
                 output.append(line)
 
     return output
+
+
+# Helper functions for register symbols
+def is_register(r: str):
+    return r[1] == 'R' and r[2:].isnumeric() and 0 <= int(r[2:]) <= 15
+
+
+def get_register(r: str):
+    return int(r[2:])
 
 
 # For parsing A-instruction addresses
@@ -112,6 +133,19 @@ source = decomment(source)
 print(source)
 
 
+def scan_symbols(source: list[str]):
+    output = []
+    offset = 0
+    for line in range(len(source)):
+        if source[line].startswith('(') and source[line].endswith(')'):
+            new_symbol = source[line][1:-1]
+            symbol_table[new_symbol] = line + offset
+            offset += 1
+        else:
+            output.append(source[line])
+    return output
+
+
 def parse_line(line: str):
     """Parse individual lines. Assumes complete symbol table."""
     # A-instruction
@@ -119,8 +153,11 @@ def parse_line(line: str):
         if line[1:].isnumeric():
             return build_a(int(line[1:]))
         else:
-            # TODO: get value from symbol table
+            if is_register(line):
+                reg = get_register(line)
+                return build_a(reg)
             return line
+            return symbol_table[line[1:]]
 
     # C-instruction
     # These 4 variables determine assignment, CPU command, and jump instructions
@@ -143,5 +180,8 @@ def parse_line(line: str):
 # Testing
 source = read_file(get_path())
 source = decomment(source)
+source = scan_symbols(source)
+print(source)
+print(symbol_table)
 source = [parse_line(line) for line in source]
 print(source)
