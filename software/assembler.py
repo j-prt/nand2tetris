@@ -2,8 +2,6 @@
 
 import sys
 
-MAX_REG = 15
-
 JUMP_TABLE = {
     'JGT': '001',
     'JEQ': '010',
@@ -44,6 +42,8 @@ symbol_table = {
     'THIS': 3,
     'THAT': 4,
 }
+
+max_reg = 15
 
 
 # Get the path to the .asm
@@ -113,6 +113,7 @@ def build_dest(dest: str | None):
 
 
 def build_comp(comp: str):
+    print(comp)
     if 'M' in comp:
         output = '1'
         comp = comp.replace('M', 'A')
@@ -150,14 +151,19 @@ def parse_line(line: str):
     """Parse individual lines. Assumes complete symbol table."""
     # A-instruction
     if line.startswith('@'):
-        if line[1:].isnumeric():
-            return build_a(int(line[1:]))
+        if (addr := line[1:]).isnumeric():
+            return build_a(int(addr))
         else:
             if is_register(line):
                 reg = get_register(line)
                 return build_a(reg)
-            return line
-            return symbol_table[line[1:]]
+            elif addr in symbol_table:
+                return symbol_table[addr]
+            else:
+                global max_reg
+                symbol_table[addr] = max_reg + 1
+                max_reg += 1
+                return build_a(max_reg)
 
     # C-instruction
     # These 4 variables determine assignment, CPU command, and jump instructions
