@@ -46,8 +46,8 @@ symbol_table = {
 max_reg = 15
 
 
-# Get the path to the .asm
 def get_path():
+    """Extracts path from command line arguments"""
     try:
         file_path = sys.argv[1]
     except IndexError:
@@ -90,7 +90,7 @@ def get_register(r: str):
     return int(r[2:])
 
 
-# For parsing A-instruction addresses
+# Helper functions for parsing A-instruction addresses
 def int_to_bin(addr: int):
     """Converts an integer to its binary format, padded to 15 digits."""
     return f'{addr:b}'.rjust(15, '0')
@@ -102,7 +102,7 @@ def build_a(addr: int):
     return '0' + addr
 
 
-# For building C-instructions
+# Helper functions for building C-instructions
 def build_dest(dest: str | None):
     if not dest:
         return '000'
@@ -113,7 +113,6 @@ def build_dest(dest: str | None):
 
 
 def build_comp(comp: str):
-    print(comp)
     if 'M' in comp:
         output = '1'
         comp = comp.replace('M', 'A')
@@ -128,19 +127,14 @@ def build_jump(jump: str):
     return JUMP_TABLE[jump]
 
 
-# Testing
-source = read_file(get_path())
-source = decomment(source)
-print(source)
-
-
 def scan_symbols(source: list[str]):
     output = []
     offset = 0
     for line in range(len(source)):
+        print(offset)
         if source[line].startswith('(') and source[line].endswith(')'):
             new_symbol = source[line][1:-1]
-            symbol_table[new_symbol] = line + offset
+            symbol_table[new_symbol] = line - offset
             offset += 1
         else:
             output.append(source[line])
@@ -158,7 +152,7 @@ def parse_line(line: str):
                 reg = get_register(line)
                 return build_a(reg)
             elif addr in symbol_table:
-                return symbol_table[addr]
+                return build_a(symbol_table[addr])
             else:
                 global max_reg
                 symbol_table[addr] = max_reg + 1
@@ -180,14 +174,19 @@ def parse_line(line: str):
     comp = build_comp(cmd or rhs)
     jump = build_jump(jmp)
 
-    return '111' + dest + comp + jump
+    print(line, lhs, rhs, cmd, jmp)
+
+    return '111' + comp + dest + jump
 
 
-# Testing
-source = read_file(get_path())
+path = get_path()
+source = read_file(path)
 source = decomment(source)
 source = scan_symbols(source)
 print(source)
 print(symbol_table)
 source = [parse_line(line) for line in source]
 print(source)
+
+with open(f'{path.split('.')[0]}.hack', 'w') as f:
+    f.write('\n'.join(source))
