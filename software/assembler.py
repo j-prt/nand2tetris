@@ -2,6 +2,16 @@
 
 import sys
 
+JUMP_TABLE = {
+    'JGT': '001',
+    'JEQ': '010',
+    'JGE': '011',
+    'JLT': '100',
+    'JNE': '101',
+    'JLE': '110',
+    'JMP': '111',
+}
+
 
 # Get the path to the .asm
 def get_path():
@@ -51,16 +61,24 @@ def build_a(addr: int):
 
 
 # For building C-instructions
-def build_dest(dest):
-    pass
+def build_dest(dest: str | None):
+    if not dest:
+        return '000'
+    output = ''
+    output += '1' if 'A' in dest else '0'
+    output += '1' if 'D' in dest else '0'
+    output += '1' if 'M' in dest else '0'
+    return output
 
 
 def build_comp(comp):
     pass
 
 
-def build_jump(jump):
-    pass
+def build_jump(jump: str):
+    if not jump:
+        return '000'
+    return JUMP_TABLE[jump]
 
 
 # Testing
@@ -94,7 +112,7 @@ def parse_line(line: str):
     comp = build_comp(cmd or rhs)
     jump = build_jump(jmp)
 
-    return cmd, lhs, rhs, jmp
+    return dest, comp, jump
 
 
 # Testing
