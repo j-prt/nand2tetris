@@ -128,10 +128,13 @@ def build_jump(jump: str):
 
 
 def scan_symbols(source: list[str]):
+    """
+    Reads through the source code and replaces forward references with
+    the appropriate line numbers (i.e. instruction addresses)
+    """
     output = []
     offset = 0
     for line in range(len(source)):
-        print(offset)
         if source[line].startswith('(') and source[line].endswith(')'):
             new_symbol = source[line][1:-1]
             symbol_table[new_symbol] = line - offset
@@ -142,7 +145,10 @@ def scan_symbols(source: list[str]):
 
 
 def parse_line(line: str):
-    """Parse individual lines. Assumes complete symbol table."""
+    """
+    Parse individual lines and outputs machine code.
+    Assumes forward references have been resolved.
+    """
     # A-instruction
     if line.startswith('@'):
         if (addr := line[1:]).isnumeric():
@@ -170,23 +176,27 @@ def parse_line(line: str):
     if rhs:
         rhs = rhs.split(';')[0]
 
-    dest = build_dest(lhs)
     comp = build_comp(cmd or rhs)
+    dest = build_dest(lhs)
     jump = build_jump(jmp)
-
-    print(line, lhs, rhs, cmd, jmp)
 
     return '111' + comp + dest + jump
 
 
-path = get_path()
-source = read_file(path)
-source = decomment(source)
-source = scan_symbols(source)
-print(source)
-print(symbol_table)
-source = [parse_line(line) for line in source]
-print(source)
+def write_output(source: list[str], path: str):
+    with open(f'{path.split('.')[0]}.hack', 'w') as f:
+        f.write('\n'.join(source))
 
-with open(f'{path.split('.')[0]}.hack', 'w') as f:
-    f.write('\n'.join(source))
+
+def assembler():
+    """Converts assembly to machine code and writes to a .hack file."""
+    path = get_path()
+    source = read_file(path)
+    source = decomment(source)
+    source = scan_symbols(source)
+    source = [parse_line(line) for line in source]
+    write_output(source, path)
+
+
+if __name__ == '__main__':
+    assembler()
