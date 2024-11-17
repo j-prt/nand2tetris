@@ -12,6 +12,27 @@ JUMP_TABLE = {
     'JMP': '111',
 }
 
+COMP_TABLE = {
+    '0': '101010',
+    '1': '111111',
+    '-1': '111010',
+    'D': '001100',
+    'A': '110000',
+    '!D': '001101',
+    '!A': '110001',
+    '-D': '001111',
+    '-A': '110011',
+    'D+1': '011111',
+    'A+1': '110111',
+    'D-1': '001110',
+    'A-1': '110010',
+    'D+A': '000010',
+    'D-A': '010011',
+    'A-D': '000111',
+    'D&A': '000000',
+    'D|A': '010101',
+}
+
 
 # Get the path to the .asm
 def get_path():
@@ -64,15 +85,19 @@ def build_a(addr: int):
 def build_dest(dest: str | None):
     if not dest:
         return '000'
-    output = ''
-    output += '1' if 'A' in dest else '0'
+    output = '1' if 'A' in dest else '0'
     output += '1' if 'D' in dest else '0'
     output += '1' if 'M' in dest else '0'
     return output
 
 
-def build_comp(comp):
-    pass
+def build_comp(comp: str):
+    if 'M' in comp:
+        output = '1'
+        comp = comp.replace('M', 'A')
+    else:
+        output = '0'
+    return output + COMP_TABLE[comp]
 
 
 def build_jump(jump: str):
@@ -112,7 +137,7 @@ def parse_line(line: str):
     comp = build_comp(cmd or rhs)
     jump = build_jump(jmp)
 
-    return dest, comp, jump
+    return '111' + dest + comp + jump
 
 
 # Testing
