@@ -41,18 +41,23 @@ ARITHMETIC_COMMANDS = {
            D=M
            A=A-1
            D=M-D
-           @TRUE
+           @TRUE{0}
            D;JEQ
-           @FALSE
+           @FALSE{0}
            D;JNE
-           (TRUE)
+           (TRUE{0})
            @SP
            A=M-1
-           M=1
-           (FALSE)
+           M=-1
+           @END{0}
+           0;JMP
+           (FALSE{0})
            @SP
            A=M-1
-           M=0\
+           M=0
+           @END{0}
+           0;JMP
+           (END{0})\
            """,
     'gt': """\
            // gt
@@ -62,18 +67,23 @@ ARITHMETIC_COMMANDS = {
            D=M
            A=A-1
            D=M-D
-           @TRUE
+           @TRUE{0}
            D;JGT
-           @FALSE
+           @FALSE{0}
            D;JLE
-           (TRUE)
+           (TRUE{0})
            @SP
            A=M-1
-           M=1
-           (FALSE)
+           M=-1
+           @END{0}
+           0;JMP
+           (FALSE{0})
            @SP
            A=M-1
-           M=0\
+           M=0
+           @END{0}
+           0;JMP
+           (END{0})\
            """,
     'lt': """\
            // lt
@@ -83,18 +93,23 @@ ARITHMETIC_COMMANDS = {
            D=M
            A=A-1
            D=D-M
-           @TRUE
+           @TRUE{0}
            D;JGT
-           @FALSE
+           @FALSE{0}
            D;JLE
-           (TRUE)
+           (TRUE{0})
            @SP
            A=M-1
-           M=1
-           (FALSE)
+           M=-1
+           @END{0}
+           0;JMP
+           (FALSE{0})
            @SP
            A=M-1
-           M=0\
+           M=0
+           @END{0}
+           0;JMP
+           (END{0})\
            """,
     'and': """\
            // and
@@ -237,6 +252,7 @@ class Parser:
 
 class CodeWriter:
     def __init__(self, file_name):
+        self.conditional_count = 0
         self.file_name = file_name
         self.file = open(file_name + '.asm', 'w')
 
@@ -252,7 +268,13 @@ class CodeWriter:
     def to_assembly(self, line: Line):
         match line.command_type:
             case Command.ARITHMETIC:
-                current = ARITHMETIC_COMMANDS[line.command]
+                if line.command in ['eq', 'gt', 'lt']:
+                    current = ARITHMETIC_COMMANDS[line.command].format(
+                        self.conditional_count
+                    )
+                    self.conditional_count += 1
+                else:
+                    current = ARITHMETIC_COMMANDS[line.command]
             case Command.POP:
                 seg, num = line.arguments
                 if seg in SEGMENT_TABLE:
