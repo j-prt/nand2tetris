@@ -5,9 +5,19 @@ This time, using the proposed implementation in NAND2Tetris II.
 
 from dataclasses import dataclass
 from enum import Enum, auto
+from textwrap import dedent
 
 ARITHMETIC_COMMANDS = {
-    'add': 0,
+    'add': """\
+           // add
+           @SP
+           A=M-1 // SP-1
+           D=M
+           A=A-1 // SP-2
+           M=D+M
+           @SP
+           M=M-1\
+           """,
     'sub': 0,
     'neg': 0,
     'eq': 0,
@@ -17,6 +27,31 @@ ARITHMETIC_COMMANDS = {
     'or': 0,
     'not': 0,
 }
+
+PUSH_TEMPLATE = """\
+    // push
+    @{} // offset
+    D=A
+    @{} // location
+    A=M+D
+    D=M
+    @SP
+    A=M
+    M=D
+    @SP
+    M=M+1\
+"""
+
+PUSH_CONST = """\
+    // push const
+    @{} // num
+    D=A
+    @SP
+    A=M
+    M=D
+    @SP
+    M=M+1\
+"""
 
 
 class Command(Enum):
@@ -84,8 +119,23 @@ class CodeWriter:
         self.file.close()
 
     def to_assembly(self, line: Line):
-        if line.command_type == Command.ARITHMETIC:
-            return ARITHMETIC_COMMANDS[line.command]
+        match line.command_type:
+            case Command.ARITHMETIC:
+                current = ARITHMETIC_COMMANDS[line.command]
+            case Command.POP:
+                current = 'pop'
+            case Command.PUSH:
+                loc, num = line.arguments
+                if loc == 'constant':
+                    current = PUSH_CONST.format(num)
+                else:
+                    current = PUSH_TEMPLATE.format(num, loc)
+
+        self.current = current
+
+    def write(self):
+        asm = dedent(self.current) + '\n'
+        self.file.write(asm)
 
 
 def main():
@@ -97,3 +147,4 @@ with Parser('SimpleAdd.vm') as parser:
         while parser.load_next():
             line = parser.parse()
             writer.to_assembly(line)
+            writer.write()
