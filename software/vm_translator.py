@@ -29,7 +29,7 @@ ARITHMETIC_COMMANDS = {
 }
 
 PUSH_TEMPLATE = """\
-    // push
+    // push template
     @{} // offset
     D=A
     @{} // segment
@@ -44,7 +44,7 @@ PUSH_TEMPLATE = """\
 
 PUSH_CONST = """\
     // push const
-    @{} // num
+    @{} // location
     D=A
     @SP
     A=M
@@ -54,7 +54,7 @@ PUSH_CONST = """\
 """
 
 POP_TEMPLATE = """\
-    // pop
+    // pop template
     @{} // offset
     D=A
     @{} // segment
@@ -67,6 +67,17 @@ POP_TEMPLATE = """\
     A=M
     D=M
     @R13
+    A=M
+    M=D\
+"""
+
+POP_CONST = """\
+    // pop const
+    @SP
+    M=M-1
+    A=M
+    D=M
+    @{} // location
     A=M
     M=D
 """
@@ -150,7 +161,11 @@ class CodeWriter:
                 current = ARITHMETIC_COMMANDS[line.command]
             case Command.POP:
                 seg, num = line.arguments
-                current = POP_TEMPLATE.format(num, seg)
+                if seg in SEGMENT_TABLE:
+                    current = POP_TEMPLATE.format(num, seg)
+                else:
+                    loc = self._resolve_segment(seg, num)
+                    current = POP_CONST.format(loc)
             case Command.PUSH:
                 seg, num = line.arguments
                 if seg == 'constant':
@@ -158,21 +173,22 @@ class CodeWriter:
                 elif seg in SEGMENT_TABLE:
                     current = PUSH_TEMPLATE.format(num, SEGMENT_TABLE[seg])
                 else:
-                    # static case
-                    if seg == 'static':
-                        loc = self.file_name + '.' + num
-                    if seg == 'temp':
-                        loc = str(5 + int(num))
-                    if seg == 'pointer':
-                        if num == '0':
-                            loc = 'THIS'
-                        if num == '1':
-                            loc == 'THAT'
-
-                    # temp case
-                    # pointer case
+                    loc = self._resolve_segment(seg, num)
+                    current = PUSH_CONST.format(loc)
 
         self.current = current
+
+    def _resolve_segment(self, seg, num):
+        if seg == 'static':
+            loc = self.file_name + '.' + num
+        if seg == 'temp':
+            loc = str(5 + int(num))
+        if seg == 'pointer':
+            if num == '0':
+                loc = 'THIS'
+            if num == '1':
+                loc == 'THAT'
+        return loc
 
     def write(self):
         asm = dedent(self.current) + '\n'
