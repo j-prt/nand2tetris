@@ -24,18 +24,102 @@ ARITHMETIC_COMMANDS = {
            M=M-1
            A=M
            D=M
+           A=A-1
+           M=M-D\
+           """,
+    'neg': """\
+           // neg
+           @SP
+           A=M-1
+           M=-M\
+           """,
+    'eq': """\
+           // eq
            @SP
            M=M-1
            A=M
-           M=M-D\
+           D=M
+           A=A-1
+           D=M-D
+           @TRUE
+           D;JEQ
+           @FALSE
+           D;JNE
+           (TRUE)
+           @SP
+           A=M-1
+           M=1
+           (FALSE)
+           @SP
+           A=M-1
+           M=0\
            """,
-    'neg': 0,
-    'eq': 0,
-    'gt': 0,
-    'lt': 0,
-    'and': 0,
-    'or': 0,
-    'not': 0,
+    'gt': """\
+           // gt
+           @SP
+           M=M-1
+           A=M
+           D=M
+           A=A-1
+           D=M-D
+           @TRUE
+           D;JGT
+           @FALSE
+           D;JLE
+           (TRUE)
+           @SP
+           A=M-1
+           M=1
+           (FALSE)
+           @SP
+           A=M-1
+           M=0\
+           """,
+    'lt': """\
+           // lt
+           @SP
+           M=M-1
+           A=M
+           D=M
+           A=A-1
+           D=D-M
+           @TRUE
+           D;JGT
+           @FALSE
+           D;JLE
+           (TRUE)
+           @SP
+           A=M-1
+           M=1
+           (FALSE)
+           @SP
+           A=M-1
+           M=0\
+           """,
+    'and': """\
+           // and
+           @SP
+           M=M-1
+           A=M
+           D=M
+           A=A-1
+           M=M&D\
+           """,
+    'or': """\
+           // or
+           @SP
+           M=M-1
+           A=M
+           D=M
+           A=A-1
+           M=M|D\
+           """,
+    'not': """\
+           // not
+           @SP
+           A=M-1
+           M=!M\
+           """,
 }
 
 PUSH_TEMPLATE = """\
@@ -206,12 +290,13 @@ class CodeWriter:
 
 
 def main():
-    pass
+    with Parser('StackTest.vm') as parser:
+        with CodeWriter('StackTest') as writer:
+            while parser.load_next():
+                line = parser.parse()
+                writer.to_assembly(line)
+                writer.write()
 
 
-with Parser('SimpleAdd.vm') as parser:
-    with CodeWriter('SimpleAdd') as writer:
-        while parser.load_next():
-            line = parser.parse()
-            writer.to_assembly(line)
-            writer.write()
+if __name__ == '__main__':
+    main()
