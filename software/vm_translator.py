@@ -3,6 +3,7 @@ Translator for converting VM Code (Hack bytecode) to Hack Assembly.
 This time, using the proposed implementation in NAND2Tetris II.
 """
 
+import sys
 from dataclasses import dataclass
 from enum import Enum, auto
 from textwrap import dedent
@@ -162,6 +163,17 @@ PUSH_CONST = """\
     M=M+1\
 """
 
+PUSH_OTHER = """\
+    // push other
+    @{} // location
+    D=M
+    @SP
+    A=M
+    M=D
+    @SP
+    M=M+1\
+"""
+
 POP_TEMPLATE = """\
     // pop template
     @{} // offset
@@ -180,14 +192,13 @@ POP_TEMPLATE = """\
     M=D\
 """
 
-POP_CONST = """\
-    // pop const
+POP_OTHER = """\
+    // pop
     @SP
     M=M-1
     A=M
     D=M
     @{} // location
-    A=M
     M=D\
 """
 
@@ -278,10 +289,10 @@ class CodeWriter:
             case Command.POP:
                 seg, num = line.arguments
                 if seg in SEGMENT_TABLE:
-                    current = POP_TEMPLATE.format(num, seg)
+                    current = POP_TEMPLATE.format(num, SEGMENT_TABLE[seg])
                 else:
                     loc = self._resolve_segment(seg, num)
-                    current = POP_CONST.format(loc)
+                    current = POP_OTHER.format(loc)
             case Command.PUSH:
                 seg, num = line.arguments
                 if seg == 'constant':
@@ -290,7 +301,7 @@ class CodeWriter:
                     current = PUSH_TEMPLATE.format(num, SEGMENT_TABLE[seg])
                 else:
                     loc = self._resolve_segment(seg, num)
-                    current = PUSH_CONST.format(loc)
+                    current = PUSH_OTHER.format(loc)
 
         self.current = current
 
@@ -311,9 +322,21 @@ class CodeWriter:
         self.file.write(asm)
 
 
+def get_path():
+    """Extracts path from command line arguments"""
+    try:
+        file_path = sys.argv[1]
+    except IndexError:
+        print('Error: no filepath provided.')
+        exit(1)
+    else:
+        return file_path
+
+
 def main():
-    with Parser('StackTest.vm') as parser:
-        with CodeWriter('StackTest') as writer:
+    path = get_path()
+    with Parser(path) as parser:
+        with CodeWriter(path.split('.')[0]) as writer:
             while parser.load_next():
                 line = parser.parse()
                 writer.to_assembly(line)
