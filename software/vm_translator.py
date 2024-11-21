@@ -32,7 +32,7 @@ PUSH_TEMPLATE = """\
     // push
     @{} // offset
     D=A
-    @{} // location
+    @{} // segment
     A=M+D
     D=M
     @SP
@@ -52,6 +52,31 @@ PUSH_CONST = """\
     @SP
     M=M+1\
 """
+
+POP_TEMPLATE = """\
+    // pop
+    @{} // offset
+    D=A
+    @{} // segment
+    A=M+D
+    D=A
+    @R13
+    M=D
+    @SP
+    M=M-1
+    A=M
+    D=M
+    @R13
+    A=M
+    M=D
+"""
+
+SEGMENT_TABLE = {
+    'local': 'LCL',
+    'argument': 'ARG',
+    'this': 'THIS',
+    'that': 'THAT',
+}
 
 
 class Command(Enum):
@@ -107,6 +132,7 @@ class Parser:
 
 class CodeWriter:
     def __init__(self, file_name):
+        self.file_name = file_name
         self.file = open(file_name + '.asm', 'w')
 
     def __enter__(self):
@@ -123,13 +149,28 @@ class CodeWriter:
             case Command.ARITHMETIC:
                 current = ARITHMETIC_COMMANDS[line.command]
             case Command.POP:
-                current = 'pop'
+                seg, num = line.arguments
+                current = POP_TEMPLATE.format(num, seg)
             case Command.PUSH:
-                loc, num = line.arguments
-                if loc == 'constant':
+                seg, num = line.arguments
+                if seg == 'constant':
                     current = PUSH_CONST.format(num)
+                elif seg in SEGMENT_TABLE:
+                    current = PUSH_TEMPLATE.format(num, SEGMENT_TABLE[seg])
                 else:
-                    current = PUSH_TEMPLATE.format(num, loc)
+                    # static case
+                    if seg == 'static':
+                        loc = self.file_name + '.' + num
+                    if seg == 'temp':
+                        loc = str(5 + int(num))
+                    if seg == 'pointer':
+                        if num == '0':
+                            loc = 'THIS'
+                        if num == '1':
+                            loc == 'THAT'
+
+                    # temp case
+                    # pointer case
 
         self.current = current
 
