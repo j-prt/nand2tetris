@@ -3,26 +3,35 @@ Translator for converting VM Code (Hack bytecode) to Hack Assembly.
 This time, using the proposed implementation in NAND2Tetris II.
 """
 
+from dataclasses import dataclass
 from enum import Enum, auto
+
+ARITHMETIC_COMMANDS = {
+    'add': 0,
+    'sub': 0,
+    'neg': 0,
+    'eq': 0,
+    'gt': 0,
+    'lt': 0,
+    'and': 0,
+    'or': 0,
+    'not': 0,
+}
 
 
 class Command(Enum):
     """VM Commands"""
 
-    # Arithmetic/Logical commands
-    ADD = auto()
-    SUB = auto()
-    NEG = auto()
-    EQ = auto()
-    GT = auto()
-    LT = auto()
-    AND = auto()
-    OR = auto()
-    NOT = auto()
-
-    # Memory access commands
+    ARITHMETIC = auto()
     POP = auto()
     PUSH = auto()
+
+
+@dataclass
+class Line:
+    arguments: list[str]
+    command: str
+    command_type: Command
 
 
 class Parser:
@@ -42,6 +51,7 @@ class Parser:
 
     def load_next(self):
         self.current = self.file.readline()
+
         # Opportunistically skip comments and empty lines
         if self.current.startswith('//') or self.current.startswith('\n'):
             return self.load_next()
@@ -51,10 +61,13 @@ class Parser:
             return False
 
     def parse(self):
-        self.current = self.current.split('//')[0]
-        operands = self.current.split()
-        command = Command[operands[0].upper()]
-        print(command)
+        line = self.current.split('//')[0].strip()
+        command, *arguments = line.split()
+        if command in ARITHMETIC_COMMANDS:
+            command_type = Command.ARITHMETIC
+        else:
+            command_type = Command[command.upper()]
+        return Line(arguments, command, command_type)
 
 
 class CodeWriter:
@@ -70,11 +83,17 @@ class CodeWriter:
     def close(self):
         self.file.close()
 
+    def to_assembly(self, line: Line):
+        if line.command_type == Command.ARITHMETIC:
+            return ARITHMETIC_COMMANDS[line.command]
+
 
 def main():
     pass
 
 
 with Parser('SimpleAdd.vm') as parser:
-    while parser.load_next():
-        line = parser.parse()
+    with CodeWriter('SimpleAdd') as writer:
+        while parser.load_next():
+            line = parser.parse()
+            writer.to_assembly(line)
