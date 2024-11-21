@@ -18,7 +18,17 @@ ARITHMETIC_COMMANDS = {
            @SP
            M=M-1\
            """,
-    'sub': 0,
+    'sub': """\
+           // sub
+           @SP
+           M=M-1
+           A=M
+           D=M
+           @SP
+           M=M-1
+           A=M
+           M=M-D\
+           """,
     'neg': 0,
     'eq': 0,
     'gt': 0,
@@ -79,7 +89,7 @@ POP_CONST = """\
     D=M
     @{} // location
     A=M
-    M=D
+    M=D\
 """
 
 SEGMENT_TABLE = {
