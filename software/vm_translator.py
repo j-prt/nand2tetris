@@ -314,7 +314,7 @@ class CodeWriter:
             if num == '0':
                 loc = 'THIS'
             if num == '1':
-                loc == 'THAT'
+                loc = 'THAT'
         return loc
 
     def write(self):
