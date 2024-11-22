@@ -6,8 +6,20 @@ class Command(Enum):
     """VM Commands"""
 
     ARITHMETIC = auto()
+
+    # Memory access
     POP = auto()
     PUSH = auto()
+
+    # Branching
+    LABEL = auto()
+    GOTO = auto()
+    IFGOTO = auto()
+
+    # Function
+    FUNCTION = auto()
+    CALL = auto()
+    RETURN = auto()
 
 
 @dataclass

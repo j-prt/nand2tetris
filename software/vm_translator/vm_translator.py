@@ -50,7 +50,9 @@ class Parser:
         if command in ARITHMETIC_COMMANDS:
             command_type = Command.ARITHMETIC
         else:
-            command_type = Command[command.upper()]
+            # Dealing with the - in if-goto
+            command_type = ''.join(command.split('-')).upper()
+            command_type = Command[command_type]
         return Line(arguments, command, command_type)
 
 
@@ -70,31 +72,14 @@ class CodeWriter:
         self.file.close()
 
     def to_assembly(self, line: Line):
+        print(line.command, line.arguments)
         match line.command_type:
             case Command.ARITHMETIC:
-                if line.command in ['eq', 'gt', 'lt']:
-                    current = ARITHMETIC_COMMANDS[line.command].format(
-                        self.conditional_count
-                    )
-                    self.conditional_count += 1
-                else:
-                    current = ARITHMETIC_COMMANDS[line.command]
+                current = self._arithmetic(line)
             case Command.POP:
-                seg, num = line.arguments
-                if seg in SEGMENT_TABLE:
-                    current = POP_TEMPLATE.format(num, SEGMENT_TABLE[seg])
-                else:
-                    loc = self._resolve_segment(seg, num)
-                    current = POP_OTHER.format(loc)
+                current = self._pop(line)
             case Command.PUSH:
-                seg, num = line.arguments
-                if seg == 'constant':
-                    current = PUSH_CONST.format(num)
-                elif seg in SEGMENT_TABLE:
-                    current = PUSH_TEMPLATE.format(num, SEGMENT_TABLE[seg])
-                else:
-                    loc = self._resolve_segment(seg, num)
-                    current = PUSH_OTHER.format(loc)
+                current = self._push(line)
 
         self.current = current
 
@@ -109,6 +94,34 @@ class CodeWriter:
             if num == '1':
                 loc = 'THAT'
         return loc
+
+    def _arithmetic(self, line: Line):
+        if line.command in ['eq', 'gt', 'lt']:
+            assembly = ARITHMETIC_COMMANDS[line.command].format(self.conditional_count)
+            self.conditional_count += 1
+        else:
+            assembly = ARITHMETIC_COMMANDS[line.command]
+        return assembly
+
+    def _pop(self, line: Line):
+        seg, num = line.arguments
+        if seg in SEGMENT_TABLE:
+            assembly = POP_TEMPLATE.format(num, SEGMENT_TABLE[seg])
+        else:
+            loc = self._resolve_segment(seg, num)
+            assembly = POP_OTHER.format(loc)
+        return assembly
+
+    def _push(self, line: Line):
+        seg, num = line.arguments
+        if seg == 'constant':
+            assembly = PUSH_CONST.format(num)
+        elif seg in SEGMENT_TABLE:
+            assembly = PUSH_TEMPLATE.format(num, SEGMENT_TABLE[seg])
+        else:
+            loc = self._resolve_segment(seg, num)
+            assembly = PUSH_OTHER.format(loc)
+        return assembly
 
     def write(self):
         asm = dedent(self.current) + '\n'
