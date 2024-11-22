@@ -80,6 +80,12 @@ class CodeWriter:
                 current = self._pop(line)
             case Command.PUSH:
                 current = self._push(line)
+            case Command.LABEL:
+                print('label')
+            case Command.GOTO:
+                print('goto')
+            case Command.IFGOTO:
+                print('if-goto')
 
         self.current = current
 
