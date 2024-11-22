@@ -9,6 +9,7 @@ from textwrap import dedent
 from auxiliary import Command, Line
 from templates import (
     ARITHMETIC_COMMANDS,
+    LABEL_TEMPLATE,
     POP_OTHER,
     POP_TEMPLATE,
     PUSH_CONST,
@@ -59,6 +60,7 @@ class Parser:
 class CodeWriter:
     def __init__(self, file_name):
         self.conditional_count = 0
+        self.label_count = 0
         self.file_name = file_name
         self.file = open(file_name + '.asm', 'w')
 
@@ -72,7 +74,6 @@ class CodeWriter:
         self.file.close()
 
     def to_assembly(self, line: Line):
-        print(line.command, line.arguments)
         match line.command_type:
             case Command.ARITHMETIC:
                 current = self._arithmetic(line)
@@ -81,7 +82,7 @@ class CodeWriter:
             case Command.PUSH:
                 current = self._push(line)
             case Command.LABEL:
-                print('label')
+                current = self._label(line)
             case Command.GOTO:
                 print('goto')
             case Command.IFGOTO:
@@ -128,6 +129,9 @@ class CodeWriter:
             loc = self._resolve_segment(seg, num)
             assembly = PUSH_OTHER.format(loc)
         return assembly
+
+    def _label(self, line: Line):
+        return LABEL_TEMPLATE.format(self.file_name + '$' + line.arguments[0])
 
     def write(self):
         asm = dedent(self.current) + '\n'

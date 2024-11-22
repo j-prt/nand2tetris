@@ -200,3 +200,8 @@ SEGMENT_TABLE = {
     'this': 'THIS',
     'that': 'THAT',
 }
+
+LABEL_TEMPLATE = """\
+                 // label
+                 ({})\
+                 """
