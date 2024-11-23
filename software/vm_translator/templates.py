@@ -1,8 +1,14 @@
 """Templates for the VM Translator"""
 
+SEGMENT_TABLE = {
+    'local': 'LCL',
+    'argument': 'ARG',
+    'this': 'THIS',
+    'that': 'THAT',
+}
+
 ARITHMETIC_COMMANDS = {
     'add': """\
-           // add
            @SP
            A=M-1 // SP-1
            D=M
@@ -12,7 +18,6 @@ ARITHMETIC_COMMANDS = {
            M=M-1\
            """,
     'sub': """\
-           // sub
            @SP
            M=M-1
            A=M
@@ -21,13 +26,11 @@ ARITHMETIC_COMMANDS = {
            M=M-D\
            """,
     'neg': """\
-           // neg
            @SP
            A=M-1
            M=-M\
            """,
     'eq': """\
-           // eq
            @SP
            M=M-1
            A=M
@@ -53,7 +56,6 @@ ARITHMETIC_COMMANDS = {
            (END{0})\
            """,
     'gt': """\
-           // gt
            @SP
            M=M-1
            A=M
@@ -79,7 +81,6 @@ ARITHMETIC_COMMANDS = {
            (END{0})\
            """,
     'lt': """\
-           // lt
            @SP
            M=M-1
            A=M
@@ -105,7 +106,6 @@ ARITHMETIC_COMMANDS = {
            (END{0})\
            """,
     'and': """\
-           // and
            @SP
            M=M-1
            A=M
@@ -114,7 +114,6 @@ ARITHMETIC_COMMANDS = {
            M=M&D\
            """,
     'or': """\
-           // or
            @SP
            M=M-1
            A=M
@@ -123,7 +122,6 @@ ARITHMETIC_COMMANDS = {
            M=M|D\
            """,
     'not': """\
-           // not
            @SP
            A=M-1
            M=!M\
@@ -131,7 +129,6 @@ ARITHMETIC_COMMANDS = {
 }
 
 PUSH_TEMPLATE = """\
-    // push template
     @{} // offset
     D=A
     @{} // segment
@@ -145,7 +142,6 @@ PUSH_TEMPLATE = """\
 """
 
 PUSH_CONST = """\
-    // push const
     @{} // location
     D=A
     @SP
@@ -156,7 +152,6 @@ PUSH_CONST = """\
 """
 
 PUSH_OTHER = """\
-    // push other
     @{} // location
     D=M
     @SP
@@ -167,7 +162,6 @@ PUSH_OTHER = """\
 """
 
 POP_TEMPLATE = """\
-    // pop template
     @{} // offset
     D=A
     @{} // segment
@@ -185,7 +179,6 @@ POP_TEMPLATE = """\
 """
 
 POP_OTHER = """\
-    // pop
     @SP
     M=M-1
     A=M
@@ -194,26 +187,16 @@ POP_OTHER = """\
     M=D\
 """
 
-SEGMENT_TABLE = {
-    'local': 'LCL',
-    'argument': 'ARG',
-    'this': 'THIS',
-    'that': 'THAT',
-}
-
 LABEL_TEMPLATE = """\
-                 // label
                  ({})\
                  """
 
 GOTO_TEMPLATE = """\
-                // goto
                 @{}
                 0;JMP\
                 """
 
 IF_GOTO_TEMPLATE = """\
-                   // if-goto
                    @SP
                    M=M-1
                    A=M

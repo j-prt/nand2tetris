@@ -24,6 +24,7 @@ class Command(Enum):
 
 @dataclass
 class Line:
+    raw: str
     arguments: list[str]
     command: str
     command_type: Command

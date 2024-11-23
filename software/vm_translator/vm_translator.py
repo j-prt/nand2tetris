@@ -51,15 +51,15 @@ class Parser:
             return False
 
     def parse(self):
-        line = self.current.split('//')[0].strip()
-        command, *arguments = line.split()
+        raw = self.current.split('//')[0].strip()
+        command, *arguments = raw.split()
         if command in ARITHMETIC_COMMANDS:
             command_type = Command.ARITHMETIC
         else:
             # Dealing with the - in if-goto
             command_type = ''.join(command.split('-')).upper()
             command_type = Command[command_type]
-        return Line(arguments, command, command_type)
+        return Line(raw, arguments, command, command_type)
 
 
 class CodeWriter:
@@ -94,6 +94,7 @@ class CodeWriter:
                 current = self._if_goto(line)
 
         self.current = current
+        self.raw = '// ' + line.raw + '\n'
 
     def _resolve_segment(self, seg, num):
         if seg == 'static':
@@ -145,7 +146,7 @@ class CodeWriter:
         return IF_GOTO_TEMPLATE.format(self.file_name + '$' + line.arguments[0])
 
     def write(self):
-        asm = dedent(self.current) + '\n'
+        asm = self.raw + dedent(self.current) + '\n'
         self.file.write(asm)
 
 
