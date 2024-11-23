@@ -39,8 +39,11 @@ class Parser:
     def load_next(self):
         self.current = self.file.readline()
 
-        # Opportunistically skip comments and empty lines
-        if self.current.lstrip().startswith('//') or self.current.startswith('\n'):
+        # To opportunistically skip comments and empty lines
+        is_comment = self.current.lstrip().startswith('//')
+        is_whitespace = self.current.isspace()
+
+        if is_comment or is_whitespace:
             return self.load_next()
         if self.current != '':
             return True
