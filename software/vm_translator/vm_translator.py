@@ -9,6 +9,8 @@ from textwrap import dedent
 from auxiliary import Command, Line
 from templates import (
     ARITHMETIC_COMMANDS,
+    GOTO_TEMPLATE,
+    IF_GOTO_TEMPLATE,
     LABEL_TEMPLATE,
     POP_OTHER,
     POP_TEMPLATE,
@@ -38,7 +40,7 @@ class Parser:
         self.current = self.file.readline()
 
         # Opportunistically skip comments and empty lines
-        if self.current.startswith('//') or self.current.startswith('\n'):
+        if self.current.lstrip().startswith('//') or self.current.startswith('\n'):
             return self.load_next()
         if self.current != '':
             return True
@@ -84,9 +86,9 @@ class CodeWriter:
             case Command.LABEL:
                 current = self._label(line)
             case Command.GOTO:
-                print('goto')
+                current = self._goto(line)
             case Command.IFGOTO:
-                print('if-goto')
+                current = self._if_goto(line)
 
         self.current = current
 
@@ -132,6 +134,12 @@ class CodeWriter:
 
     def _label(self, line: Line):
         return LABEL_TEMPLATE.format(self.file_name + '$' + line.arguments[0])
+
+    def _goto(self, line: Line):
+        return GOTO_TEMPLATE.format(self.file_name + '$' + line.arguments[0])
+
+    def _if_goto(self, line: Line):
+        return IF_GOTO_TEMPLATE.format(self.file_name + '$' + line.arguments[0])
 
     def write(self):
         asm = dedent(self.current) + '\n'

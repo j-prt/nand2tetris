@@ -205,3 +205,19 @@ LABEL_TEMPLATE = """\
                  // label
                  ({})\
                  """
+
+GOTO_TEMPLATE = """\
+                // goto
+                @{}
+                0;JMP\
+                """
+
+IF_GOTO_TEMPLATE = """\
+                   // if-goto
+                   @SP
+                   M=M-1
+                   A=M
+                   D=M
+                   @{}
+                   D;JNE\
+                   """
