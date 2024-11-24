@@ -81,6 +81,7 @@ class CodeWriter:
         self.file.close()
 
     def to_assembly(self, line: Line):
+        print(line.raw)
         match line.command_type:
             case Command.ARITHMETIC:
                 current = self._arithmetic(line)
@@ -95,7 +96,7 @@ class CodeWriter:
             case Command.IFGOTO:
                 current = self._if_goto(line)
             case Command.FUNCTION:
-                print('function')
+                current = self._function(line)
             case Command.CALL:
                 print('call')
             case Command.RETURN:
@@ -158,6 +159,7 @@ class CodeWriter:
         assembly = FUNCTION_TEMPLATE.format(label)
         for i in range(int(n_vars)):
             assembly += '\n' + FUNCTION_VARS
+        return assembly
 
     def write(self):
         asm = self.raw + dedent(self.current) + '\n'

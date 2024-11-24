@@ -251,4 +251,38 @@ CALL_TEMPLATE = """\
                 """
 
 RETURN_TEMPLATE = """\
+                  @LCL
+                  A=M
+                  D=M
+                  @R15 // endframe
+                  M=D
+                  @5
+                  D=A
+                  @R15
+                  D=M-D
+                  @R16 //retaddr
+                  M=D
+                  @SP
+                  A=M-1
+                  D=M
+                  @ARG
+                  A=M
+                  M=D
+                  D=A
+                  @SP // set sp to *arg+1
+                  M=D+1
+                  @R15 // restore the caller's frame
+                  D=M-1
+                  @THAT
+                  M=D
+                  @THIS
+                  D=D-1
+                  M=D
+                  @ARG
+                  D=D-1
+                  M=D
+                  @LCL
+                  M=D-1
+                  @R16
+                  0;JMP
                   """
