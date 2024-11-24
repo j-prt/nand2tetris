@@ -210,7 +210,10 @@ FUNCTION_TEMPLATE = """\
                     """
 
 FUNCTION_VARS = """\
-                    push constant 0\
+                    @SP
+                    M=M+1
+                    A=M-1
+                    M=0\
                     """
 
 CALL_TEMPLATE = """\
@@ -252,7 +255,6 @@ CALL_TEMPLATE = """\
 
 RETURN_TEMPLATE = """\
                   @LCL
-                  A=M
                   D=M
                   @R15 // endframe
                   M=D
@@ -284,5 +286,6 @@ RETURN_TEMPLATE = """\
                   @LCL
                   M=D-1
                   @R16
+                  A=M
                   0;JMP
                   """

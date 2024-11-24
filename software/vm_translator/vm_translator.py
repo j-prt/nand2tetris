@@ -9,6 +9,7 @@ from textwrap import dedent
 from auxiliary import Command, Line
 from templates import (
     ARITHMETIC_COMMANDS,
+    CALL_TEMPLATE,
     FUNCTION_TEMPLATE,
     FUNCTION_VARS,
     GOTO_TEMPLATE,
@@ -19,6 +20,7 @@ from templates import (
     PUSH_CONST,
     PUSH_OTHER,
     PUSH_TEMPLATE,
+    RETURN_TEMPLATE,
     SEGMENT_TABLE,
 )
 
@@ -81,7 +83,6 @@ class CodeWriter:
         self.file.close()
 
     def to_assembly(self, line: Line):
-        print(line.raw)
         match line.command_type:
             case Command.ARITHMETIC:
                 current = self._arithmetic(line)
@@ -98,9 +99,9 @@ class CodeWriter:
             case Command.FUNCTION:
                 current = self._function(line)
             case Command.CALL:
-                print('call')
+                current = self._call(line)
             case Command.RETURN:
-                print('return')
+                current = self._return(line)
 
         self.current = current
         self.raw = '// ' + line.raw + '\n'
@@ -160,6 +161,13 @@ class CodeWriter:
         for i in range(int(n_vars)):
             assembly += '\n' + FUNCTION_VARS
         return assembly
+
+    def _call(self, line: Line):
+        label, n_args = line.arguments
+        return CALL_TEMPLATE.format(n_args, label)
+
+    def _return(self, line: Line):
+        return RETURN_TEMPLATE
 
     def write(self):
         asm = self.raw + dedent(self.current) + '\n'
