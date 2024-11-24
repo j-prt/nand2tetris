@@ -252,7 +252,7 @@ CALL_TEMPLATE = """\
                 M=D // SP location
                 @{1} // nArgs offset
                 D=A
-                @6 // frame offset
+                @5 // frame offset
                 D=D+A
                 @SP
                 D=M-D
@@ -272,6 +272,8 @@ RETURN_TEMPLATE = """\
                   D=A
                   @R15
                   D=M-D
+                  A=D
+                  D=M
                   @R16 //retaddr
                   M=D
                   @SP
@@ -308,7 +310,6 @@ RETURN_TEMPLATE = """\
                   @LCL
                   M=D
                   @R16
-                  A=M
                   A=M
                   0;JMP
                   """
