@@ -222,33 +222,33 @@ CALL_TEMPLATE = """\
                 @SP
                 M=M+1
                 A=M-1
-                M=A-D // old SP points to SP addr - offset
-                @LCL //
+                M=A-D // starting SP points to SP addr - offset
+                @LCL
                 D=M
                 @SP
                 A=M
-                M=D
-                @ARG //
-                D=M
-                @SP
-                M=M+1
-                A=M
-                M=D
-                @THIS //
+                M=D // store frame LCL
+                @ARG
                 D=M
                 @SP
                 M=M+1
                 A=M
-                M=D
-                @THAT //
+                M=D // store frame ARG
+                @THIS
                 D=M
                 @SP
                 M=M+1
                 A=M
-                M=D
+                M=D // store frame THIS
+                @THAT
+                D=M
+                @SP
+                M=M+1
+                A=M
+                M=D // store frame THAT
                 D=A
-                @LCL //
-                M=D
+                @LCL
+                M=D // SP location
                 @{} // func addr
                 0;JMP\
                 """
@@ -256,9 +256,9 @@ CALL_TEMPLATE = """\
 RETURN_TEMPLATE = """\
                   @LCL
                   D=M
-                  @R15 // endframe
+                  @R15 // store endframe, LCL 0
                   M=D
-                  @5
+                  @5 // offset
                   D=A
                   @R15
                   D=M-D
@@ -269,22 +269,34 @@ RETURN_TEMPLATE = """\
                   D=M
                   @ARG
                   A=M
-                  M=D
+                  M=D // set ARG 0 to SP - 1 (return val)
                   D=A
                   @SP // set sp to *arg+1
                   M=D+1
                   @R15 // restore the caller's frame
-                  D=M-1
+                  M=M-1
+                  A=M
+                  D=M
                   @THAT
                   M=D
+                  @R15
+                  M=M-1
+                  A=M
+                  D=M
                   @THIS
-                  D=D-1
                   M=D
+                  @R15
+                  M=M-1
+                  A=M
+                  D=M
                   @ARG
-                  D=D-1
                   M=D
+                  @R15
+                  M=M-1
+                  A=M
+                  D=M
                   @LCL
-                  M=D-1
+                  M=D
                   @R16
                   A=M
                   0;JMP
