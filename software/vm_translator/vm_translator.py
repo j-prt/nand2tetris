@@ -149,17 +149,18 @@ class CodeWriter:
         return assembly
 
     def _label(self, line: Line):
-        return LABEL_TEMPLATE.format(self.file_name + '$' + line.arguments[0])
+        return LABEL_TEMPLATE.format(self.func_name + '$' + line.arguments[0])
 
     def _goto(self, line: Line):
-        return GOTO_TEMPLATE.format(self.file_name + '$' + line.arguments[0])
+        return GOTO_TEMPLATE.format(self.func_name + '$' + line.arguments[0])
 
     def _if_goto(self, line: Line):
-        return IF_GOTO_TEMPLATE.format(self.file_name + '$' + line.arguments[0])
+        return IF_GOTO_TEMPLATE.format(self.func_name + '$' + line.arguments[0])
 
     def _function(self, line: Line):
         label, n_vars = line.arguments
         self.func_name = label
+        self.return_count = 0
         assembly = FUNCTION_TEMPLATE.format(label)
         for i in range(int(n_vars)):
             assembly += '\n' + FUNCTION_VARS

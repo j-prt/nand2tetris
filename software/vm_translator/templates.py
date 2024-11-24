@@ -220,37 +220,39 @@ CALL_TEMPLATE = """\
                 @{0} // retaddr
                 D=A
                 @SP
-                A=M
-                M=D
+                M=M+1
+                A=M-1
+                M=D // store retaddr
                 @LCL
                 D=M
                 @SP
-                A=M
+                M=M+1
+                A=M-1
                 M=D // store frame LCL
                 @ARG
                 D=M
                 @SP
                 M=M+1
-                A=M
+                A=M-1
                 M=D // store frame ARG
                 @THIS
                 D=M
                 @SP
                 M=M+1
-                A=M
+                A=M-1
                 M=D // store frame THIS
                 @THAT
                 D=M
                 @SP
                 M=M+1
-                A=M
+                A=M-1
                 M=D // store frame THAT
-                D=A
+                D=A+1
                 @LCL // func LCL
                 M=D // SP location
                 @{1} // nArgs offset
                 D=A
-                @5 // frame offset
+                @6 // frame offset
                 D=D+A
                 @SP
                 D=M-D
@@ -306,6 +308,7 @@ RETURN_TEMPLATE = """\
                   @LCL
                   M=D
                   @R16
+                  A=M
                   A=M
                   0;JMP
                   """
