@@ -204,3 +204,47 @@ IF_GOTO_TEMPLATE = """\
                    @{}
                    D;JNE\
                    """
+
+FUNCTION_TEMPLATE = """\
+                    ({})
+                    """
+
+CALL_TEMPLATE = """\
+                @{} // offset, save current address to arg 0
+                D=A
+                @SP
+                M=M+1
+                A=M-1
+                M=A-D // old SP points to SP addr - offset
+                @LCL //
+                D=M
+                @SP
+                A=M
+                M=D
+                @ARG //
+                D=M
+                @SP
+                M=M+1
+                A=M
+                M=D
+                @THIS //
+                D=M
+                @SP
+                M=M+1
+                A=M
+                M=D
+                @THAT //
+                D=M
+                @SP
+                M=M+1
+                A=M
+                M=D
+                D=A
+                @LCL //
+                M=D
+                @{} // func addr
+                0;JMP
+                """
+
+RETURN_TEMPLATE = """\
+                  """

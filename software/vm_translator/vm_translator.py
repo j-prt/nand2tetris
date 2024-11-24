@@ -92,6 +92,12 @@ class CodeWriter:
                 current = self._goto(line)
             case Command.IFGOTO:
                 current = self._if_goto(line)
+            case Command.FUNCTION:
+                print('function')
+            case Command.CALL:
+                print('call')
+            case Command.RETURN:
+                print('return')
 
         self.current = current
         self.raw = '// ' + line.raw + '\n'
@@ -144,6 +150,9 @@ class CodeWriter:
 
     def _if_goto(self, line: Line):
         return IF_GOTO_TEMPLATE.format(self.file_name + '$' + line.arguments[0])
+
+    def _function(self, line: Line):
+        pass
 
     def write(self):
         asm = self.raw + dedent(self.current) + '\n'
