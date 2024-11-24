@@ -206,7 +206,11 @@ IF_GOTO_TEMPLATE = """\
                    """
 
 FUNCTION_TEMPLATE = """\
-                    ({})
+                    ({})\
+                    """
+
+FUNCTION_VARS = """\
+                    push constant 0\
                     """
 
 CALL_TEMPLATE = """\
@@ -243,7 +247,7 @@ CALL_TEMPLATE = """\
                 @LCL //
                 M=D
                 @{} // func addr
-                0;JMP
+                0;JMP\
                 """
 
 RETURN_TEMPLATE = """\

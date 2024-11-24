@@ -9,6 +9,8 @@ from textwrap import dedent
 from auxiliary import Command, Line
 from templates import (
     ARITHMETIC_COMMANDS,
+    FUNCTION_TEMPLATE,
+    FUNCTION_VARS,
     GOTO_TEMPLATE,
     IF_GOTO_TEMPLATE,
     LABEL_TEMPLATE,
@@ -152,7 +154,10 @@ class CodeWriter:
         return IF_GOTO_TEMPLATE.format(self.file_name + '$' + line.arguments[0])
 
     def _function(self, line: Line):
-        pass
+        label, n_vars = line.arguments
+        assembly = FUNCTION_TEMPLATE.format(label)
+        for i in range(int(n_vars)):
+            assembly += '\n' + FUNCTION_VARS
 
     def write(self):
         asm = self.raw + dedent(self.current) + '\n'
