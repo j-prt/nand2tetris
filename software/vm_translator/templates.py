@@ -217,12 +217,11 @@ FUNCTION_VARS = """\
                     """
 
 CALL_TEMPLATE = """\
-                @{} // offset, save current address to arg 0
+                @{0} // retaddr
                 D=A
                 @SP
-                M=M+1
-                A=M-1
-                M=A-D // starting SP points to SP addr - offset
+                A=M
+                M=D
                 @LCL
                 D=M
                 @SP
@@ -247,10 +246,19 @@ CALL_TEMPLATE = """\
                 A=M
                 M=D // store frame THAT
                 D=A
-                @LCL
+                @LCL // func LCL
                 M=D // SP location
-                @{} // func addr
-                0;JMP\
+                @{1} // nArgs offset
+                D=A
+                @5 // frame offset
+                D=D+A
+                @SP
+                D=M-D
+                @ARG // func ARG
+                M=D
+                @{2} // func addr
+                0;JMP
+                ({0}) // retaddr\
                 """
 
 RETURN_TEMPLATE = """\

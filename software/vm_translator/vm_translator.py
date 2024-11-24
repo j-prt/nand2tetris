@@ -70,6 +70,8 @@ class CodeWriter:
     def __init__(self, file_name):
         self.conditional_count = 0
         self.label_count = 0
+        self.return_count = 0
+        self.func_name = ''
         self.file_name = file_name
         self.file = open(file_name + '.asm', 'w')
 
@@ -157,6 +159,7 @@ class CodeWriter:
 
     def _function(self, line: Line):
         label, n_vars = line.arguments
+        self.func_name = label
         assembly = FUNCTION_TEMPLATE.format(label)
         for i in range(int(n_vars)):
             assembly += '\n' + FUNCTION_VARS
@@ -164,7 +167,9 @@ class CodeWriter:
 
     def _call(self, line: Line):
         label, n_args = line.arguments
-        return CALL_TEMPLATE.format(n_args, label)
+        return_addr = self.func_name + '$' + 'ret.' + str(self.return_count)
+        self.return_count += 1
+        return CALL_TEMPLATE.format(return_addr, n_args, label)
 
     def _return(self, line: Line):
         return RETURN_TEMPLATE
