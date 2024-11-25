@@ -81,7 +81,6 @@ class CodeWriter:
             self.file = open(file_name + '.asm', 'w')
         if mode == 'many':
             output_path = (dir_path / dir_name).with_suffix('.asm')
-            print(output_path)
             if output_path.exists():
                 self.file = open(output_path, 'a')
             else:
@@ -190,7 +189,7 @@ class CodeWriter:
 
     def _boot(self):
         call_args = 'Sys.init$ret.0', 0, 'Sys.init'
-        asm = dedent(BOOT_CODE) + '\n' + dedent(CALL_TEMPLATE.format(*call_args))
+        asm = dedent(BOOT_CODE) + '\n' + dedent(CALL_TEMPLATE.format(*call_args)) + '\n'
         self.file.write(asm)
 
     def write(self):
