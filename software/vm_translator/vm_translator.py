@@ -4,6 +4,7 @@ This time, using the proposed implementation in NAND2Tetris II.
 """
 
 import sys
+from pathlib import Path
 from textwrap import dedent
 
 from auxiliary import Command, Line
@@ -26,8 +27,8 @@ from templates import (
 
 
 class Parser:
-    def __init__(self, path):
-        if path[-3:] != '.vm':
+    def __init__(self, path: Path):
+        if path.suffix != '.vm':
             raise ValueError('Specified file should end in .vm')
         self.file = open(path, 'r')
 
@@ -103,7 +104,7 @@ class CodeWriter:
             case Command.CALL:
                 current = self._call(line)
             case Command.RETURN:
-                current = self._return(line)
+                current = self._return()
 
         self.current = current
         self.raw = '// ' + line.raw + '\n'
@@ -172,7 +173,7 @@ class CodeWriter:
         self.return_count += 1
         return CALL_TEMPLATE.format(return_addr, n_args, label)
 
-    def _return(self, line: Line):
+    def _return(self):
         return RETURN_TEMPLATE
 
     def write(self):
@@ -188,17 +189,29 @@ def get_path():
         print('Error: no filepath provided.')
         exit(1)
     else:
-        return file_path
+        return Path(file_path)
 
 
-def main():
-    path = get_path()
+def translate_one(path: Path):
     with Parser(path) as parser:
-        with CodeWriter(path.split('.')[0]) as writer:
+        with CodeWriter(path.stem) as writer:
             while parser.load_next():
                 line = parser.parse()
                 writer.to_assembly(line)
                 writer.write()
+
+
+def translate_many(files: list[Path]):
+    pass
+
+
+def main():
+    path = get_path()
+    if path.is_dir():
+        files = path.glob('*.vm')
+        translate_many(files)
+    else:
+        translate_one(path)
 
 
 if __name__ == '__main__':
