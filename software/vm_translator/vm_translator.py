@@ -69,7 +69,9 @@ class Parser:
 
 
 class CodeWriter:
-    def __init__(self, file_name, mode='one', dir_name=None, dir_path=None):
+    def __init__(
+        self, file_name, mode='one', dir_name: Path = None, dir_path: Path = None
+    ):
         self.conditional_count = 0
         self.label_count = 0
         self.return_count = 0
@@ -78,7 +80,13 @@ class CodeWriter:
         if mode == 'one':
             self.file = open(file_name + '.asm', 'w')
         if mode == 'many':
-            self.file = open(dir_path / dir_name + '.asm', 'w')
+            output_path = (dir_path / dir_name).with_suffix('.asm')
+            print(output_path)
+            if output_path.exists():
+                self.file = open(output_path, 'a')
+            else:
+                self.file = open(output_path, 'w')
+                self._boot()
 
     def __enter__(self):
         return self
@@ -183,6 +191,7 @@ class CodeWriter:
     def _boot(self):
         call_args = 'Sys.init$ret.0', 0, 'Sys.init'
         asm = dedent(BOOT_CODE) + '\n' + dedent(CALL_TEMPLATE.format(*call_args))
+        self.file.write(asm)
 
     def write(self):
         asm = self.raw + dedent(self.current) + '\n'
@@ -213,7 +222,7 @@ def translate_many(path: Path):
     files = path.glob('*.vm')
     for file in files:
         with Parser(file) as parser:
-            with CodeWriter(path.stem) as writer:
+            with CodeWriter(file.stem, 'many', path.stem, path) as writer:
                 while parser.load_next():
                     line = parser.parse()
                     writer.to_assembly(line)
