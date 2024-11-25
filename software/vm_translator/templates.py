@@ -313,3 +313,10 @@ RETURN_TEMPLATE = """\
                   A=M
                   0;JMP
                   """
+
+BOOT_CODE = """\
+            @256
+            D=A
+            @SP
+            M=D\
+            """

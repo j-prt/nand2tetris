@@ -10,6 +10,7 @@ from textwrap import dedent
 from auxiliary import Command, Line
 from templates import (
     ARITHMETIC_COMMANDS,
+    BOOT_CODE,
     CALL_TEMPLATE,
     FUNCTION_TEMPLATE,
     FUNCTION_VARS,
@@ -68,13 +69,16 @@ class Parser:
 
 
 class CodeWriter:
-    def __init__(self, file_name):
+    def __init__(self, file_name, mode='one', dir_name=None, dir_path=None):
         self.conditional_count = 0
         self.label_count = 0
         self.return_count = 0
         self.func_name = ''
         self.file_name = file_name
-        self.file = open(file_name + '.asm', 'w')
+        if mode == 'one':
+            self.file = open(file_name + '.asm', 'w')
+        if mode == 'many':
+            self.file = open(dir_path / dir_name + '.asm', 'w')
 
     def __enter__(self):
         return self
@@ -176,6 +180,10 @@ class CodeWriter:
     def _return(self):
         return RETURN_TEMPLATE
 
+    def _boot(self):
+        call_args = 'Sys.init$ret.0', 0, 'Sys.init'
+        asm = dedent(BOOT_CODE) + '\n' + dedent(CALL_TEMPLATE.format(*call_args))
+
     def write(self):
         asm = self.raw + dedent(self.current) + '\n'
         self.file.write(asm)
@@ -201,15 +209,21 @@ def translate_one(path: Path):
                 writer.write()
 
 
-def translate_many(files: list[Path]):
-    pass
+def translate_many(path: Path):
+    files = path.glob('*.vm')
+    for file in files:
+        with Parser(file) as parser:
+            with CodeWriter(path.stem) as writer:
+                while parser.load_next():
+                    line = parser.parse()
+                    writer.to_assembly(line)
+                    writer.write()
 
 
 def main():
     path = get_path()
     if path.is_dir():
-        files = path.glob('*.vm')
-        translate_many(files)
+        translate_many(path)
     else:
         translate_one(path)
 
